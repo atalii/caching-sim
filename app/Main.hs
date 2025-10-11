@@ -3,6 +3,7 @@
 module Main where
 
 import Data.List.Extra (snoc)
+import System.IO
 
 data Act e = Hit e | Replace (Maybe e) e
   deriving (Show)
@@ -21,6 +22,10 @@ instance (Show a) => Show (Algorithm a e) where
 stepper :: (Eq e) => Algorithm a e -> e -> (Act e, a)
 stepper (Alg state (Handler h)) = h state
 
+-- Can this be state-monad'd?
+set :: (Eq e) => Algorithm a e -> a -> Algorithm a e
+set (Alg _ handler) a' = Alg a' handler
+
 lru :: (Eq e) => OnlineAlg [Maybe e] e Int
 lru k = Alg (k `replicate` Nothing) (Handler handler)
   where
@@ -37,9 +42,15 @@ lru k = Alg (k `replicate` Nothing) (Handler handler)
     without (x : xs) t = x : without xs t
 
 main :: IO ()
-main =
-  let lru' = (lru 6 :: Algorithm [Maybe Char] Char)
-      (act, lru'') = stepper lru' 'A'
-   in do
-        print act
-        print lru''
+main = main' $ lru 6
+  where
+    main' alg = do
+      print alg
+      (act, state') <- getReq alg
+      print act
+      main' $ set alg state'
+
+    getReq cache = do
+      putStr "rq> "
+      _ <- hFlush stdout
+      stepper cache <$> getLine
