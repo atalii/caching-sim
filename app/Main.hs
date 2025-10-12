@@ -50,7 +50,7 @@ s3fifo (s, m) = Alg (Nothing × s, Nothing × m, Nothing × m) (Handler handler)
       if Just rq `elem` gq
         then
           let (act, (sq', mq', _)) = insertM st rq
-           in (act, (sq', mq', gq `without` Just rq))
+           in (act, (sq', mq', Nothing : gq `without` Just rq))
         else case sh of
           Nothing -> (Replace Nothing rq, (sx ++ [Just (rq, 0)], mq, gq))
           -- If the FIFO'd element of the small queue hasn't been used, put it on the ghost queue and add the new element.
