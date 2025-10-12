@@ -55,8 +55,8 @@ s3fifo (s, m) = Alg (Nothing × s, Nothing × m, Nothing × m) (Handler handler)
           Nothing -> (Replace Nothing rq, (sx ++ [Just (rq, 0)], mq, gq))
           -- If the FIFO'd element of the small queue hasn't been used, put it on the ghost queue and add the new element.
           Just (shV, 0) -> (Replace (Just shV) rq, (sx ++ [Just (rq, 0)], mq, gqs ++ [Just shV]))
-          -- Otherwise, put it in the main queue and try again.
-          Just (shV, _) -> let (_, st') = insertM st shV in insert st' rq
+          -- Otherwise, put reolace it with rq and put it in the main queue.
+          Just (shV, _) -> insertM (sx ++ [Just (rq, 0)], mq, gq) shV
     insert _ _ = error "s, m must be > 0"
 
     insertM :: ([Maybe (e, Int)], [Maybe (e, Int)], [Maybe e]) -> e -> (Act e, ([Maybe (e, Int)], [Maybe (e, Int)], [Maybe e]))
