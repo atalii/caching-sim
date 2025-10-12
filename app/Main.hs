@@ -83,7 +83,7 @@ without (x : xs) t | t == x = xs
 without (x : xs) t = x : without xs t
 
 main :: IO ()
-main = main' $ s3fifo (3, 6)
+main = main' $ s3fifo (2, 4)
   where
     main' alg = do
       print alg
