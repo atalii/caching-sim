@@ -62,7 +62,7 @@ s3fifo (s, m) = Alg (Nothing × s, Nothing × m, Nothing × m) (Handler handler)
     insertM :: ([Maybe (e, Int)], [Maybe (e, Int)], [Maybe e]) -> e -> (Act e, ([Maybe (e, Int)], [Maybe (e, Int)], [Maybe e]))
     insertM (sq, Just (mV, mCount) : ms, gq) rq
       | mCount > 0 = insertM (sq, ms ++ [Just (mV, mCount - 1)], gq) rq
-      | otherwise = (Replace (Just mV) rq, (sq, Just (rq, 0) : ms, gq))
+      | otherwise = (Replace (Just mV) rq, (sq, ms ++ [Just (rq, 0)], gq))
     insertM (sq, Nothing : ms, gq) rq = (Replace Nothing rq, (sq, ms ++ [Just (rq, 0)], gq))
     insertM _ _ = error "m must be > 0"
 
