@@ -5,4 +5,4 @@ before 𝓖.
 
 ## Building
 
-Install [`cabal`](cabal.readthedocs.io). `cabal run` will run the `main`.
+Install [`cabal`](cabal.readthedocs.io). `cabal run` will run `main`.
