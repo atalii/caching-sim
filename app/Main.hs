@@ -3,6 +3,7 @@
 module Main where
 
 import Data.List.Extra (snoc)
+import Data.Maybe (catMaybes)
 import System.IO
 
 -- my notation. #mynotation
@@ -17,8 +18,6 @@ data Handler a e = (Eq e) => Handler (a -> e -> (Act e, a))
 data Algorithm a e = (Eq e) => Alg a (Handler a e)
 
 type OnlineAlg a e c = c -> Algorithm a e
-
-data OfflineAlg a e c = (Eq e) => OfflineAlg (c -> [e] -> Algorithm a e)
 
 instance (Show a) => Show (Algorithm a e) where
   show (Alg state _) = show state
@@ -75,21 +74,45 @@ lru k = Alg (Nothing × k) (Handler handler)
 
     reInsert rq state = (state `without` Just rq) `snoc` Just rq
 
+-- Run farthest in the future on a given request sequence with cache size `h`.
+fitf :: (Eq e) => Int -> [e] -> [(Act e, [Maybe e])]
+fitf h = run' $ Nothing × h
+  where
+    run' _ [] = []
+    run' cache (r : rs) | Just r `elem` cache = (Hit r, cache) : run' cache rs
+    run' cache (r : rs)
+      | Nothing `elem` cache =
+          let replaced = Just r : cache `without` Nothing
+           in (Replace Nothing r, replaced) : run' replaced rs
+    run' cache (r : rs) =
+      let victim = findFarthest (catMaybes cache) rs
+          replaced = Just r : cache `without` Just victim
+       in (Replace (Just victim) r, replaced) : run' replaced rs
+
+    findFarthest :: (Eq e) => [e] -> [e] -> e
+    findFarthest [x] _ = x
+    findFarthest [] _ = error "h must be > 0"
+    findFarthest (x : _) [] = x -- arbtirary tie breaking
+    findFarthest cache (x : xs) = if x `elem` cache then findFarthest (cache `without` x) xs else findFarthest cache xs
+
 without :: (Eq a) => [a] -> a -> [a]
 without [] _ = []
 without (x : xs) t | t == x = xs
 without (x : xs) t = x : without xs t
 
 main :: IO ()
-main = main' $ s3fifo (2, 4)
+main = main' [] $ s3fifo (2, 4)
   where
-    main' alg = do
+    main' rSeq alg = do
       print alg
-      (act, state') <- getReq alg
+      (rSeq', act, state') <- getReq rSeq alg
       print act
-      main' $ set alg state'
+      print $ fitf 2 rSeq'
+      main' rSeq' $ set alg state'
 
-    getReq cache = do
+    getReq rSeq cache = do
       putStr "rq> "
       _ <- hFlush stdout
-      stepper cache <$> getLine
+      rq <- getLine
+      let (action, cache') = stepper cache rq
+      return (rSeq ++ [rq], action, cache')
