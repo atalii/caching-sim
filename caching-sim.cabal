@@ -16,7 +16,7 @@ common warnings
 executable caching-sim
     import:           warnings
     main-is:          Main.hs
-    other-modules:    Data.Cache.Sim.Types
+    other-modules:    Data.Cache.Sim.Types, Data.Cache.Sim.Algs
     -- other-extensions:
     build-depends:    base ^>=4.19.2.0, extra
     hs-source-dirs:   app, lib
