@@ -1,7 +1,6 @@
-{-# LANGUAGE ExistentialQuantification #-}
-
 module Main where
 
+import Data.Cache.Sim.Types
 import Data.List.Extra (snoc)
 import Data.Maybe (catMaybes)
 import System.IO
@@ -9,25 +8,6 @@ import System.IO
 -- my notation. #mynotation
 (×) :: a -> Int -> [a]
 (×) = flip replicate
-
-data Act e = Hit e | Replace (Maybe e) e
-  deriving (Show)
-
-data Handler a e = (Eq e) => Handler (a -> e -> (Act e, a))
-
-data Algorithm a e = (Eq e) => Alg a (Handler a e)
-
-type OnlineAlg a e c = c -> Algorithm a e
-
-instance (Show a) => Show (Algorithm a e) where
-  show (Alg state _) = show state
-
-stepper :: (Eq e) => Algorithm a e -> e -> (Act e, a)
-stepper (Alg state (Handler h)) = h state
-
--- Can this be state-monad'd?
-set :: (Eq e) => Algorithm a e -> a -> Algorithm a e
-set (Alg _ handler) a' = Alg a' handler
 
 -- Construct an S3FIFO algorithm instance. We take the size of the small and main queues. The ghost queue is taken to be the same size as the main queue.
 s3fifo :: (Eq e) => OnlineAlg ([Maybe (e, Int)], [Maybe (e, Int)], [Maybe e]) e (Int, Int)
