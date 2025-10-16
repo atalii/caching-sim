@@ -16,8 +16,12 @@ common warnings
 executable caching-sim
     import:           warnings
     main-is:          Main.hs
-    other-modules:    Data.Cache.Sim.Types, Data.Cache.Sim.Algs
     -- other-extensions:
-    build-depends:    base ^>=4.19.2.0, extra
-    hs-source-dirs:   app, lib
+    build-depends:    base ^>=4.19.2.0, caching-sim
+    hs-source-dirs:   app
     default-language: Haskell2010
+
+library
+    exposed-modules: Data.Cache.Sim.Types, Data.Cache.Sim.Algs
+    build-depends:   base ^>=4.19.2.0, extra
+    hs-source-dirs:  lib
