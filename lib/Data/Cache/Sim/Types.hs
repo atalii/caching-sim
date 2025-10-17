@@ -8,6 +8,9 @@ import Control.Monad.State.Lazy
 data Act e = Hit e | Replace (Maybe e) e
   deriving (Show, Eq)
 
+isMiss (Hit _) = False
+isMiss _ = True
+
 data Handler a e = (Eq e) => Handler (a -> e -> (Act e, a))
 
 data Algorithm a e = (Eq e) => Alg a (Handler a e)
