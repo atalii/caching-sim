@@ -9,14 +9,14 @@ import Data.Maybe (catMaybes)
 (×) = flip replicate
 
 -- Construct an S3FIFO algorithm instance. We take the size of the small and main queues. The ghost queue is taken to be the same size as the main queue.
-s3fifo :: (Eq e) => OnlineAlg ([Maybe (e, Int)], [Maybe (e, Int)], [Maybe e]) e (Int, Int)
-s3fifo (s, m) = Alg (Nothing × s, Nothing × m, Nothing × m) (Handler handler)
+s3fifo :: (Eq e) => OnlineAlg (CQueue (e, Int), CQueue (e, Int), CQueue e) e (Int, Int)
+s3fifo (s, m) = Alg (CQueue (Nothing × s), CQueue (Nothing × m), CQueue (Nothing × m)) (Handler handler)
   where
-    handler st@(sq, mq, gq) rq =
+    handler st@(CQueue sq, CQueue mq, CQueue gq) rq =
       let (sq', sqFound) = searchIn sq rq
           (mq', mqFound) = searchIn mq rq
        in if sqFound || mqFound
-            then (Hit rq, (sq', mq', gq))
+            then (Hit rq, (CQueue sq', CQueue mq', CQueue gq))
             else insert st rq
 
     searchIn [] _ = ([], False)
@@ -24,22 +24,22 @@ s3fifo (s, m) = Alg (Nothing × s, Nothing × m, Nothing × m) (Handler handler)
       | x == e = (Just (x, (c + 1) `min` 3) : xs, True)
     searchIn (x : xs) e = let (q, r) = searchIn xs e in (x : q, r)
 
-    insert st@(sh : sx, mq, gq@(_ : gqs)) rq =
+    insert st@(CQueue (sh : sx), CQueue mq, CQueue gq@(_ : gqs)) rq =
       if Just rq `elem` gq
         then insertM st rq
         else case sh of
-          Nothing -> (Replace Nothing rq, (sx ++ [Just (rq, 0)], mq, gq))
+          Nothing -> (Replace Nothing rq, (CQueue $ sx ++ [Just (rq, 0)], CQueue mq, CQueue gq))
           -- If the FIFO'd element of the small queue hasn't been used, put it on the ghost queue and add the new element.
-          Just (shV, 0) -> (Replace (Just shV) rq, (sx ++ [Just (rq, 0)], mq, gqs ++ [Just shV]))
+          Just (shV, 0) -> (Replace (Just shV) rq, (CQueue $ sx ++ [Just (rq, 0)], CQueue mq, CQueue $ gqs ++ [Just shV]))
           -- Otherwise, put reolace it with rq and put it in the main queue.
-          Just (shV, _) -> insertM (sx ++ [Just (rq, 0)], mq, gq) shV
+          Just (shV, _) -> insertM (CQueue $ sx ++ [Just (rq, 0)], CQueue mq, CQueue gq) shV
     insert _ _ = error "s, m must be > 0"
 
-    insertM :: ([Maybe (e, Int)], [Maybe (e, Int)], [Maybe e]) -> e -> (Act e, ([Maybe (e, Int)], [Maybe (e, Int)], [Maybe e]))
-    insertM (sq, Just (mV, mCount) : ms, gq) rq
-      | mCount > 0 = insertM (sq, ms ++ [Just (mV, mCount - 1)], gq) rq
-      | otherwise = (Replace (Just mV) rq, (sq, ms ++ [Just (rq, 0)], gq))
-    insertM (sq, Nothing : ms, gq) rq = (Replace Nothing rq, (sq, ms ++ [Just (rq, 0)], gq))
+    insertM :: (CQueue (e, Int), CQueue (e, Int), CQueue e) -> e -> (Act e, (CQueue (e, Int), CQueue (e, Int), CQueue e))
+    insertM (sq, CQueue (Just (mV, mCount) : ms), gq) rq
+      | mCount > 0 = insertM (sq, CQueue $ ms ++ [Just (mV, mCount - 1)], gq) rq
+      | otherwise = (Replace (Just mV) rq, (sq, CQueue $ ms ++ [Just (rq, 0)], gq))
+    insertM (sq, CQueue (Nothing : ms), gq) rq = (Replace Nothing rq, (sq, CQueue $ ms ++ [Just (rq, 0)], gq))
     insertM _ _ = error "m must be > 0"
 
 lru :: (Eq e) => OnlineAlg [Maybe e] e Int
@@ -54,8 +54,8 @@ lru k = Alg (Nothing × k) (Handler handler)
     reInsert rq state = (state `without` Just rq) `snoc` Just rq
 
 -- Run farthest in the future on a given request sequence with cache size `h`.
-fitf :: (Eq e) => Int -> [e] -> [[Maybe e]]
-fitf h = run' $ Nothing × h
+fitf :: (Eq e) => Int -> [e] -> [CQueue e]
+fitf h = map CQueue . run' (Nothing × h)
   where
     run' _ [] = []
     run' cache (r : rs) | Just r `elem` cache = cache : run' cache rs

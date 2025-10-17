@@ -34,6 +34,19 @@ instance (Show a) => Show (Algorithm a e) where
 
 type CachingEnvironmentT e c m a = (Eq e) => StateT (Algorithm c e) m a
 
+newtype CQueue e = CQueue [Maybe e]
+  deriving (Eq)
+
+toList :: CQueue e -> [Maybe e]
+toList (CQueue l) = l
+
+instance (Show e) => Show (CQueue e) where
+  show (CQueue q) = "〈" ++ expand q ++ "〉"
+    where
+      expand [] = ""
+      expand (Nothing : xs) = "_, " ++ expand xs
+      expand (Just x : xs) = show x ++ ", " ++ expand xs
+
 request :: (Eq e, Monad m) => e -> CachingEnvironmentT e c m (Act e)
 request elem = do
   state <- get
