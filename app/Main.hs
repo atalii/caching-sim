@@ -16,7 +16,7 @@ main' = repl []
       get >>= lift . print
 
       lift $ putStr "[\x1b[32;1mOPT\x1b[0m] "
-      lift $ print $ fitf 2 rqs
+      lift $ mapM_ (putStrLn . ('\t' :) . show) $ fitf 2 rqs
 
       rq <- lift getReq
       act <- request rq
