@@ -1,4 +1,3 @@
-{-# LANGUAGE PartialTypeSignatures #-}
 
 module Main where
 
