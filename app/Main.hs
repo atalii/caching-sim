@@ -12,12 +12,17 @@ main' :: (Show c) => CachingEnvironmentT String c IO ()
 main' = repl []
   where
     repl rqs = do
+      lift $ putStr "[\x1b[33;1mA  \x1b[0m] "
       get >>= lift . print
+
+      lift $ putStr "[\x1b[32;1mOPT\x1b[0m] "
+      lift $ print $ fitf 2 rqs
+
       rq <- lift getReq
       act <- request rq
       let rqs' = rqs ++ [rq]
       lift $ print act
-      lift $ print $ fitf 2 rqs'
+
       repl rqs'
 
 getReq :: IO String
