@@ -8,8 +8,12 @@ import Control.Monad.State.Lazy
 data Act e = Hit e | Replace (Maybe e) e
   deriving (Show, Eq)
 
+isMiss :: Act e -> Bool
 isMiss (Hit _) = False
 isMiss _ = True
+
+isHit :: Act e -> Bool
+isHit = not . isMiss
 
 data Handler a e = (Eq e) => Handler (a -> e -> (Act e, a))
 
