@@ -33,8 +33,6 @@ main = hspec $ do
         mapM_ (request >=> (lift . flip shouldSatisfy isMiss)) rqSeq
 
   describe "S3FIFO" $ do
-    -- TODO: test that S3FIFO behaves as expected on some example traces.
-    -- We could also encode some adversarial strategies and ensure they're all misses.
     context "when 𝓢 = 2, 𝓜  = 4" $ do
       let s3fifoInstance = s3fifo (2, 4)
       it "handles garbage appropriately" $ example $ flip evalStateT s3fifoInstance $ do
