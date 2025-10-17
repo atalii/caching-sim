@@ -6,7 +6,15 @@ module Data.Cache.Sim.Types where
 import Control.Monad.State.Lazy
 
 data Act e = Hit e | Replace (Maybe e) e
-  deriving (Show, Eq)
+  deriving (Eq)
+
+boldArrow :: String
+boldArrow = "\x1b[;1m→\x1b[0m"
+
+instance (Show e) => Show (Act e) where
+  show (Hit e) = "\x1b[;1m[HIT]\x1b[0m " ++ show e
+  show (Replace Nothing e) = "    " ++ boldArrow ++ " " ++ show e
+  show (Replace (Just old) e) = "    " ++ boldArrow ++ " " ++ show old ++ " → " ++ show e
 
 isMiss :: Act e -> Bool
 isMiss (Hit _) = False
