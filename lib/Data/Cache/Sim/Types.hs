@@ -3,7 +3,7 @@
 module Data.Cache.Sim.Types where
 
 data Act e = Hit e | Replace (Maybe e) e
-  deriving (Show)
+  deriving (Show, Eq)
 
 data Handler a e = (Eq e) => Handler (a -> e -> (Act e, a))
 

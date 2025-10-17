@@ -25,3 +25,9 @@ library
     exposed-modules: Data.Cache.Sim.Types, Data.Cache.Sim.Algs
     build-depends:   base ^>=4.19.2.0, extra
     hs-source-dirs:  lib
+
+test-suite caching-sim-test
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    build-depends: base, caching-sim, hspec
+    hs-source-dirs: test
