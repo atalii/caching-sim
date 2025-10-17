@@ -1,9 +1,8 @@
-
 module Main where
 
 import Control.Monad ((>=>))
 import Control.Monad.State.Lazy (evalStateT, lift)
-import Data.Cache.Sim.Algs (lru, s3fifo)
+import Data.Cache.Sim.Algs (fitf, lru, s3fifo)
 import Data.Cache.Sim.Types
   ( Act (..),
     OnlineAlg,
@@ -46,3 +45,10 @@ main = hspec $ do
         act <- request 'A'
         -- We expect that we've moved A to 𝓜, and therefore that it survived introducing two new garbage requests (D and E)...
         lift $ act `shouldSatisfy` isHit
+
+  describe "FITF" $ do
+    context "when k = 2" $ do
+      it "makes eviction decisions offline" $ do
+        fitf 2 ['A', 'B', 'C', 'B']
+          `shouldNotBe` fitf 2 ['A', 'B', 'C', 'A']
+        return ()
