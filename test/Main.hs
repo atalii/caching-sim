@@ -25,6 +25,6 @@ main = hspec $ do
         act <- request 'B'
         lift $ act `shouldBe` Replace Nothing 'B'
 
-      it "consistent misses on a repeated k + 1 scan" $ example $ flip evalStateT lruInstance $ do
+      it "consistently misses on a repeated k + 1 scan" $ example $ flip evalStateT lruInstance $ do
         let rqSeq = take 100000 $ cycle ['A', 'B', 'C']
         mapM_ (request >=> (lift . flip shouldSatisfy isMiss)) rqSeq
