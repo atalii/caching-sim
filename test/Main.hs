@@ -51,4 +51,3 @@ main = hspec $ do
       it "makes eviction decisions offline" $ do
         fitf 2 ['A', 'B', 'C', 'B']
           `shouldNotBe` fitf 2 ['A', 'B', 'C', 'A']
-        return ()
