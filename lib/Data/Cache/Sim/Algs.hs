@@ -70,11 +70,13 @@ fitf h = mapFirst (map CQueue) . run' (Nothing × h)
           let replaced = Just r : cache `without` Nothing
               (future, cost) = run' replaced rs
            in (replaced : future, cost + 1)
-    run' cache (r : rs) =
-      let victim = findFarthest (catMaybes cache) rs
-          replaced = Just r : cache `without` Just victim
-          (future, cost) = run' replaced rs
-       in (replaced : future, cost + 1)
+    run' cache (r : rs)
+      | r `elem` rs =
+          let victim = findFarthest (catMaybes cache) rs
+              replaced = Just r : cache `without` Just victim
+              (future, cost) = run' replaced rs
+           in (replaced : future, cost + 1)
+    run' cache (r : rs) = let (future, cost) = run' cache rs in (cache : future, cost + 1)
 
     findFarthest :: (Eq e) => [e] -> [e] -> e
     findFarthest [x] _ = x

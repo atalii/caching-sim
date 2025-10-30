@@ -48,6 +48,13 @@ main = hspec $ do
 
   describe "FITF" $ do
     context "when k = 2" $ do
+      let k = 2
       it "makes eviction decisions offline" $ do
-        fitf 2 ['A', 'B', 'C', 'B']
-          `shouldNotBe` fitf 2 ['A', 'B', 'C', 'A']
+        -- Admittedly, a very weak test.
+        fitf k ['A', 'B', 'C', 'A', 'B', 'C']
+          `shouldNotBe` fitf 2 ['A', 'B', 'C', 'C', 'B', 'A']
+
+      it "bypasses one-hit-wonders" $ do
+        -- snd here will get the cost; see the type signature
+        snd (fitf k ['A', 'B', 'C', 'B', 'C'])
+          `shouldBe` snd (fitf k ['A', 'B', 'C', 'A', 'B'])
