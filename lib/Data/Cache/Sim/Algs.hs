@@ -53,20 +53,28 @@ lru k = Alg (Nothing × k) (Handler handler)
 
     reInsert rq state = (state `without` Just rq) `snoc` Just rq
 
+type Cost = Int
+
+mapFirst :: (a -> c) -> (a, b) -> (c, b)
+mapFirst f (a, b) = (f a, b)
+
 -- Run farthest in the future on a given request sequence with cache size `h`.
-fitf :: (Eq e) => Int -> [e] -> [CQueue e]
-fitf h = map CQueue . run' (Nothing × h)
+fitf :: (Eq e) => Int -> [e] -> ([CQueue e], Cost)
+fitf h = mapFirst (map CQueue) . run' (Nothing × h)
   where
-    run' _ [] = []
-    run' cache (r : rs) | Just r `elem` cache = cache : run' cache rs
+    run' :: (Eq e) => [Maybe e] -> [e] -> ([[Maybe e]], Cost)
+    run' _ [] = ([], 0)
+    run' cache (r : rs) | Just r `elem` cache = let (future, cost) = run' cache rs in (cache : future, cost)
     run' cache (r : rs)
       | Nothing `elem` cache =
           let replaced = Just r : cache `without` Nothing
-           in replaced : run' replaced rs
+              (future, cost) = run' replaced rs
+           in (replaced : future, cost + 1)
     run' cache (r : rs) =
       let victim = findFarthest (catMaybes cache) rs
           replaced = Just r : cache `without` Just victim
-       in replaced : run' replaced rs
+          (future, cost) = run' replaced rs
+       in (replaced : future, cost + 1)
 
     findFarthest :: (Eq e) => [e] -> [e] -> e
     findFarthest [x] _ = x
