@@ -15,7 +15,7 @@ main' = repl []
       lift $ putStr "[\x1b[33;1mA  \x1b[0m] "
       get >>= lift . print
 
-      let (optSeq, cost) = fitf 2 rqs
+      let (optSeq, cost) = fitf 6 rqs
       lift $ putStr "[\x1b[32;1mOPT\x1b[0m] "
       lift $ mapM_ (putStrLn . ('\t' :) . show) optSeq
       lift $ print cost
