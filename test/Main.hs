@@ -5,6 +5,7 @@ import Control.Monad.State.Lazy (evalStateT, lift)
 import Data.Cache.Sim.Algs (fitf, lru, s3fifo)
 import Data.Cache.Sim.Types
   ( Act (..),
+    CQueue (..),
     OnlineAlg,
     isHit,
     isMiss,
@@ -58,3 +59,7 @@ main = hspec $ do
         -- snd here will get the cost; see the type signature
         snd (fitf k ['A', 'B', 'C', 'B', 'C'])
           `shouldBe` snd (fitf k ['A', 'B', 'C', 'A', 'B'])
+
+      it "bypasses optimally" $ do
+        (fst (fitf k ['A', 'B', 'C', 'A', 'B', 'C']) !! 3)
+          `shouldBe` CQueue [Just 'B', Just 'A']
