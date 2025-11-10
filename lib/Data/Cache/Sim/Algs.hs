@@ -1,4 +1,4 @@
-module Data.Cache.Sim.Algs (lru, s3fifo, fitf) where
+module Data.Cache.Sim.Algs (lru, S3FifoConfig, s3fifo, fitf) where
 
 import Data.Cache.Sim.Types
 import Data.List.Extra (snoc)
@@ -8,8 +8,10 @@ import Data.Maybe (catMaybes)
 (×) :: a -> Int -> [a]
 (×) = flip replicate
 
+type S3FifoConfig = (Int, Int) -- (s, m)
+
 -- Construct an S3FIFO algorithm instance. We take the size of the small and main queues. The ghost queue is taken to be the same size as the main queue.
-s3fifo :: (Eq e) => OnlineAlg (CQueue (e, Int), CQueue (e, Int), CQueue e) e (Int, Int)
+s3fifo :: (Eq e) => OnlineAlg (CQueue (e, Int), CQueue (e, Int), CQueue e) e S3FifoConfig
 s3fifo (s, m) = Alg (CQueue (Nothing × s), CQueue (Nothing × m), CQueue (Nothing × m)) (Handler handler)
   where
     handler st@(CQueue sq, CQueue mq, CQueue gq) rq =
