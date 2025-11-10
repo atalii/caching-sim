@@ -22,12 +22,15 @@ executable caching-sim
     default-language: Haskell2010
 
 library
-    exposed-modules: Data.Cache.Sim.Types, Data.Cache.Sim.Algs
+    exposed-modules:
+      Data.Cache.Sim.Types,
+      Data.Cache.Sim.Algs,
+      Data.Cache.Sim.Attacks
     build-depends:   base ^>=4.19.2.0, mtl ^>= 2.3, extra
     hs-source-dirs:  lib
 
 test-suite caching-sim-test
     type: exitcode-stdio-1.0
     main-is: Main.hs
-    build-depends: base, caching-sim, mtl ^>= 2.3, hspec
+    build-depends: base, caching-sim, mtl ^>= 2.3, hspec, QuickCheck, quickcheck-instances
     hs-source-dirs: test

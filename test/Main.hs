@@ -1,8 +1,9 @@
 module Main where
 
-import Control.Monad ((>=>))
+import Control.Monad (liftM2, (>=>))
 import Control.Monad.State.Lazy (evalStateT, lift)
 import Data.Cache.Sim.Algs (fitf, lru, s3fifo)
+import Data.Cache.Sim.Attacks (s3fifoAttack)
 import Data.Cache.Sim.Types
   ( Act (..),
     CQueue (..),
@@ -14,6 +15,7 @@ import Data.Cache.Sim.Types
     stepper,
   )
 import Test.Hspec
+import Test.QuickCheck (Gen (..), Positive, arbitrary, forAll, property, suchThat)
 
 main :: IO ()
 main = hspec $ do
@@ -46,6 +48,17 @@ main = hspec $ do
         act <- request 'A'
         -- We expect that we've moved A to 𝓜, and therefore that it survived introducing two new garbage requests (D and E)...
         lift $ act `shouldSatisfy` isHit
+
+    context "when under the given attack" $
+      let sGen = (arbitrary :: Gen Int) `suchThat` (> 0)
+          mGen = (arbitrary :: Gen Int) `suchThat` (> 0)
+          confs = liftM2 (,) sGen mGen `suchThat` uncurry (<)
+       in it "misses entirely" $
+            forAll confs $ \(s, m) -> do
+              let s3fifoInstance = s3fifo (s, m)
+              flip evalStateT s3fifoInstance $ do
+                let rqSeq = take 10000 $ s3fifoAttack (s, m)
+                mapM_ (request >=> (lift . flip shouldSatisfy isMiss)) rqSeq
 
   describe "FITF" $ do
     context "when k = 2" $ do
