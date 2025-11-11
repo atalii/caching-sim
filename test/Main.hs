@@ -52,7 +52,7 @@ main = hspec $ do
     context "when under the given attack" $
       let sGen = (arbitrary :: Gen Int) `suchThat` (> 0)
           mGen = (arbitrary :: Gen Int) `suchThat` (> 0)
-          confs = liftM2 (,) sGen mGen `suchThat` uncurry (<)
+          confs = liftM2 (,) sGen mGen `suchThat` uncurry (<=)
        in it "misses entirely" $
             forAll confs $ \(s, m) -> do
               let s3fifoInstance = s3fifo (s, m)
